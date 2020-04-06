@@ -1,7 +1,6 @@
+#!/bin/bash
 # M3U8 PLAYLIST DOWNLOADER
 # BY https://github.com/vitutiv
-
-#!/bin/bash
 declare -a lines # Array that stores each line of the file as a string.
 line_count=0 # Content Line (Name, URL) Count
 conversion_count=0 # Conversion Count
@@ -37,7 +36,7 @@ else
 
 			output_folder=$(echo $line | cut -f2 -d=)
 			echo "Folder changed to: $output_folder"
-
+			conversion_count=0
 		elif [[ ! -z "$line" ]]; # If a line has a non-empty string, work on it
 		then
 
@@ -84,7 +83,8 @@ else
 				
 				echo "Saving in: $filepath.mp4"
 				echo "Please wait..."
-				echo $(ffmpeg -y -i "$line" -bsf:a aac_adtstoasc -vcodec copy -c copy -crf 50 "$filepath".mp4 -hide_banner -loglevel panic) #This line is what makes all the magic happen :O
+				#echo $(ffmpeg -y -i "$line" -bsf:a aac_adtstoasc -vcodec copy -c copy -crf 50 "$filepath".mp4 -hide_banner -loglevel panic) #This line is what makes all the magic happen :O
+				echo $(ffmpeg -y -i "$line" -bsf:a aac_adtstoasc -vcodec copy -c copy -crf 50 "$filepath".mp4) #This line is what makes all the magic happen :O
 				echo "Done! Check if the file was created because I'm too lazy to check it for you."
 				echo "----------------------------"
 			
