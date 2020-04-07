@@ -2,11 +2,11 @@
 # M3U8 2 MP4 PLAYLIST DOWNLOADER
 # BY https://github.com/vitutiv
 readonly folder_delimiter="FOLDER=" # This constant tells the program the output folder for the next files
-
+readonly url_delimiter="http"
 listfile_name_argument=$1 # The playlist file (or * for all txt files in folder)
 parent_folder_argument=$2 # The parent folder is specified by the user when calling the script
 numeric_prefix_argument=$3 # Wheter the file names will have a numeric prefix on them
-
+beep_option_argument=$4 # Stores the beep option
 url="" # This variable stores the file url
 line_count=0 # Content Line (Name, URL) Count
 conversion_count=0 # Number of files converted
@@ -42,7 +42,7 @@ read_lines_from_list_file() { # Reads each line of the list file and store it in
     
 	while IFS= read -r line; # Read each line of the given file and store in an array
     do
-        if [[! -z $line]];
+        if [[ ! -z $line ]];
 		then
 			line_array[$line_count]="$line"
 			line_count=$(($line_count+1))
@@ -97,27 +97,29 @@ convert() { # Method that triggers all the file conversion related methods
 
     for line in "${line_array[@]}"; #Read each line of the array
     do
-		
-		if [[ "$line" =~ ^"$folder_delimiter" ]]; # If a line has an output folder, save the new files in it
+
+		if [[ ! -z "$line" ]]; # If a line has a non-empty string, work on it
 		then
-
-			output_folder=$(echo $line | cut -f2 -d=)
-			echo "Folder changed to: $output_folder"
-			conversion_count=0
-
-		elif [[ ! -z "$line" ]]; # If a line has a non-empty string, work on it
-		then
-
-			if (( "$line_count" % 2 )); # If the line count is odd (should contain an URL), save it to the previously read file name
+				
+			if [[ "$line" =~ ^"$folder_delimiter" ]]; # If a line has an output folder, save the new files in it
 			then
+
+				output_folder=$(echo $line | cut -f2 -d=)
+				echo "Folder changed to: $output_folder"
+				conversion_count=0
+
+			elif [[ "$line"  =~ ^"$url_delimiter" ]]; # If the line count is odd (should contain an URL), save it to the previously read file name
+			then
+
 				conversion_count=$(($conversion_count+1))
 				url="$line" # URL
 				build_file_path # Sets the output_file_path variable
 				savefile  # Saves the file
+
 			else # else, store the line as a file name
 				output_file_name="$line"
 			fi
-
+			
 			line_count=$(($line_count+1)) #increment line count
 
 		fi
@@ -131,15 +133,15 @@ then
 
     echo "Usage: $0 read_filename optional_outputfolder optional_numbering(-y, -n)"
 
-elif [[ "$listfile_name_argument" =~ "*" ]]; #IF the file name argument is "*", open each file on folder
+elif [[ "$listfile_name_argument" == "-all" ]]; #IF the file name argument is "-all", open each file on folder
 then
 
-	for file_name in "list*.txt"; do
+	for file in *.txt; do
 
 		echo "=========================================="
-		echo "PLAYLIST OPEN: $file_name"
+		echo "PLAYLIST OPEN: $f"
 		echo "=========================================="
-		convert "$file_name"
+		convert "$file"
 
 	done
 
@@ -147,4 +149,9 @@ else #Else, just convert the single file name
 
 	convert "$listfile_name_argument"
 	
+fi
+
+if [[ -z "$beep_option_argument" || "$beep_option_argument" != "-nobeep" ]]; #If user doesnt ask for "nobeep" on argument 4, make the beep noise after all conversions are finished
+then
+	echo -ne '\007'
 fi
