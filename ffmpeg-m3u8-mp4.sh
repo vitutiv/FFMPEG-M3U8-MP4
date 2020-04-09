@@ -7,6 +7,7 @@ listfile_name_argument=$1 # The playlist file (or * for all txt files in folder)
 parent_folder_argument=$2 # The parent folder is specified by the user when calling the script
 numeric_prefix_argument=$3 # Wheter the file names will have a numeric prefix on them
 beep_option_argument=$4 # Stores the beep option
+beep_interval_argument=$5 #Stores the interval between beeps
 url="" # This variable stores the file url
 line_count=0 # Content Line (Name, URL) Count
 conversion_count=0 # Number of files converted
@@ -151,7 +152,23 @@ else #Else, just convert the single file name
 	
 fi
 
+echo "Download finished! Please check your download folder."
 if [[ -z "$beep_option_argument" || "$beep_option_argument" != "-nobeep" ]]; #If user doesnt ask for "nobeep" on argument 4, make the beep noise after all conversions are finished
 then
-	echo -ne '\007'
+	if [[ "$beep_option_argument" == "-singlebeep" ]];
+	then
+		echo -ne '\007'
+	elif [[ -z "$beep_option_argument" || "$beep_option_argument" == "-repeat" ]];
+	then
+		while [[ $1 == $1 ]]; 
+		do
+			echo -ne '\007'
+			if [[ !z $beep_interval_argument ]];
+			then
+				sleep $beep_interval_argument
+			else
+				sleep 5
+			fi
+		done
+	fi
 fi
