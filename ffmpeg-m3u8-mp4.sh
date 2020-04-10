@@ -11,7 +11,11 @@ beep_interval_argument=$5 #Stores the interval between beeps
 url="" # This variable stores the file url
 line_count=0 # Content Line (Name, URL) Count
 conversion_count=0 # Number of files converted
-
+error_count=0
+alert_color=`tput setaf 3` # Yellow
+error_color=`tput setaf 1` # Red
+success_color=`tput setaf 2` # Green
+no_color=`tput sgr0` # No Color
 output_path="" # This variable is a string that stores the output file path.
 output_folder="" # The output folder name for the next files is saved here
 output_file_name="" #The output file name
@@ -25,12 +29,22 @@ make_dir_if_not_exists() { # Creates the folder if it doesnt exist
 	fi
 }
 
+check_if_downloaded_file_exists(){
+	if [[ -f $output_path ]];
+	then
+		echo "$success_color""File Downloaded Successfully!""$no_color"
+	else
+		echo "$error_color""Error in Download! Please try another URL.""$no_color"
+		error_count=$(($error_count+1))
+	fi
+}
+
 savefile() { # Saves the file in the desired path
 
 	echo "Saving in: $output_path.mp4"
 	echo "Please wait..."
 	echo $(ffmpeg -y -i "$url" -bsf:a aac_adtstoasc -vcodec copy -c copy -crf 50 "$output_path".mp4 -hide_banner -loglevel panic) # -loglevel panic This line is what makes all the magic happen :O
-	echo "DONE! Check if the file was created because I'm too lazy to check it for you."
+	check_if_downloaded_file_exists
 	echo "----------------------------"
 
 }
@@ -106,7 +120,7 @@ convert() { # Method that triggers all the file conversion related methods
 			then
 
 				output_folder=$(echo $line | cut -f2 -d=)
-				echo "Folder changed to: $output_folder"
+				echo -e "$alert_color""FOLDER CHANGED TO $output_folder""$no_color"
 				conversion_count=0
 
 			elif [[ "$line"  =~ ^"$url_delimiter" ]]; # If the line count is odd (should contain an URL), save it to the previously read file name
@@ -140,7 +154,7 @@ then
 	for file in *.txt; do
 
 		echo "=========================================="
-		echo "PLAYLIST OPEN: $f"
+		echo "$alert_color""PLAYLIST OPEN: ""$file""$no_color"
 		echo "=========================================="
 		convert "$file"
 
@@ -152,9 +166,18 @@ else #Else, just convert the single file name
 	
 fi
 
-echo "Download finished! Please check your download folder."
+if [[ "$error_count" -eq 0 ]]; 
+then #Show finished message according to error count
+	echo "$success_color""Download finished! All files downloaded.""$no_color"
+else
+
+	echo "$warning_color""Download finished with warnings! ""$error_count "" tasks of ""$conversion_count"" failed.""$no_color"
+
+fi
+
 if [[ -z "$beep_option_argument" || "$beep_option_argument" != "-nobeep" ]]; #If user doesnt ask for "nobeep" on argument 4, make the beep noise after all conversions are finished
 then
+
 	if [[ "$beep_option_argument" == "-singlebeep" ]];
 	then
 		echo -ne '\007'
@@ -163,12 +186,13 @@ then
 		while [[ $1 == $1 ]]; 
 		do
 			echo -ne '\007'
-			if [[ !z $beep_interval_argument ]];
+			if [[ ! -z "$beep_interval_argument" ]];
 			then
-				sleep $beep_interval_argument
+				sleep "$beep_interval_argument"
 			else
 				sleep 5
 			fi
 		done
 	fi
+
 fi
