@@ -1,7 +1,7 @@
 #!/bin/bash
 # M3U8 2 MP4 PLAYLIST DOWNLOADER
 # BY https://github.com/vitutiv
-readonly folder_delimiter="FOLDER=" # This constant tells the program the output folder for the next files
+readonly folder_delimiter="F=" # This constant tells the program the output folder for the next files
 readonly url_delimiter="http"
 listfile_name_argument=$1 # The playlist file (or * for all txt files in folder)
 parent_folder_argument=$2 # The parent folder is specified by the user when calling the script
@@ -31,16 +31,16 @@ make_dir_if_not_exists() { # Creates the folder if it doesnt exist
 check_if_downloaded_file_exists(){
 	if [[ -f "$output_path" ]];
 	then
-		echo "$GREEN""FILE DOWNLOADED!""$CLEAR"
+		echo "$GREEN"FILE DOWNLOADED! "$CLEAR"
 	else
-		echo "$RED""ERROR: Could not find downloaded file. Please check if file was downloaded.""$CLEAR"
+		echo "$RED"ERROR: Could not find the file ´"$output_path"´, saved from ´$url´. Please check whether the file was downloaded. "$CLEAR"
 		error_count=$((error_count+1))
 	fi
 }
 savefile() { # Saves the file in the desired path
-	echo "$CYAN""Saving in: ""$output_path.mp4""$CLEAR"
-	echo "Please wait..."
-	ffmpeg -y -i "$url" -bsf:a aac_adtstoasc -vcodec copy -c copy -crf 50 "$output_path".mp4 -hide_banner -loglevel panic # This line is what makes all the magic happen :O
+	output_path=$output_path".mp4"
+	echo "$CYAN"SAVING ´"$output_path"´ ... "$CLEAR"
+	ffmpeg -y -i "$url" -bsf:a aac_adtstoasc -vcodec copy -c copy -crf 50 "$output_path" -hide_banner -loglevel panic # This line is what makes all the magic happen :O
 	check_if_downloaded_file_exists
 	output_file_name="$RANDOM"
 	echo "-"
@@ -93,7 +93,7 @@ convert() { # Method that triggers all the file conversion related methods
 			if [[ "$line" =~ ^"$folder_delimiter" ]]; # If a line has an output folder, save the new files in it
 			then
 				output_folder=$(echo "$line" | cut -f2 -d=)
-				echo -e "$MAGENTA""FOLDER CHANGED TO $output_folder""$CLEAR"
+				echo -e "$MAGENTA"SAVE FOLDER CHANGED TO ´"$output_folder"´ "$CLEAR"
 				conversion_count=0
 			elif [[ "$line"  =~ ^"$url_delimiter" ]]; # If the line count is odd (should contain an URL), save it to the previously read file name
 			then
@@ -111,7 +111,7 @@ convert() { # Method that triggers all the file conversion related methods
 }
 if [[ -z "$listfile_name_argument" ]]; #IF the user doesnt give even the first argument, show how to use
 then
-    echo "Usage: $0 read_filename optional_outputfolder -( y | n ) -( nobeep | singlebeep | repeatbeep time_in_seconds )"
+    echo Usage: "$0 read_filename optional_outputfolder -( y | n ) -( nobeep | singlebeep | repeatbeep time_in_seconds )"
 elif [[ "$listfile_name_argument" == "-all" ]]; #IF the file name argument is "-all", open each file on folder
 then
 	for file in *.txt; do
@@ -119,11 +119,11 @@ then
 		then
 			echo -ne '\007'
 		fi
-		echo "$YELLOW""PLAYLIST OPEN: ""$file""$CLEAR"
-		echo "="
+		echo "$YELLOW"PLAYLIST ´"$file"´ OPEN"$CLEAR"
+		echo =
 		sed -i '/^$/d' "$file" # Removes blank lines in the file to avoid bugs
 		convert "$file"
-		echo "="
+		echo =
 	done
 else #Else, just convert the single file name
 	convert "$listfile_name_argument"
@@ -131,9 +131,9 @@ else #Else, just convert the single file name
 fi
 if [[ "$error_count" -eq 0 ]]; 
 then #Show finished message according to error count
-	echo "$GREEN""DOWNLOAD FINISHED! ALL FILES DOWNLOADED.""$CLEAR"
+	echo "$GREEN"DOWNLOAD FINISHED! ALL FILES DOWNLOADED."$CLEAR"
 else
-	echo "$YELLOW""DOWNLOAD FINISHED WITH WARNINGS! ""$error_count "" TASKS OF ""$conversion_count"" FAILED.""$CLEAR"
+	echo "$YELLOW"DOWNLOAD FINISHED WITH WARNINGS! "$error_count" TASKS FAILED."$CLEAR"
 fi
 if [[ -z "$beep_option_argument" || "$beep_option_argument" != "-nobeep" ]]; #If user doesnt ask for "nobeep" on argument 4, make the beep noise after all conversions are finished
 then

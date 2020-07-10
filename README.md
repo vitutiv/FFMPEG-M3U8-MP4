@@ -3,25 +3,12 @@ A simple bash script that reads a file with the title and url of the videos desi
 ---
 
 It's quite easy to use!
-First, save a text file with all the file names and links you wish to download each in a line. e.g:\
-\
-FOLDER=folder_name_1 [OPTIONAL]\
-file_name1\
-url1\
-file_name2\
-url2\
-file_name3
-url3\
-FOLDER=folder_name_2\
-file_name_4\
-url4\
-...
-
+A list file example named "list_file_example" is included with the project
 ---
 Then open it in shell like this:
 
-$ ffmpeg-m3u8-mp4.sh #read_filename (#output_folder) ( -prefix | -noprefix )" ( -nobeep | -singlebeep | -repeatbeep time_in_seconds )
+$ ffmpeg-m3u8-mp4.sh "LIST_FILE" "PARENT_OUTPUT_FOLDER" ( -prefix | -noprefix ) ( -nobeep | -singlebeep | -repeatbeep "TIME_IN_SECONDS" )
 
-* ( )=Optional
-* #=Not Literally
-* |=OR
+Example:
+
+$ ffmpeg-m3u8-mp4.sh downloadlist.txt \videos\downloads\ -prefix -repeatbeep 5
